@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { FaGitAlt, FaPlus } from "react-icons/fa";
+import { FaGitAlt, FaPlus, FaSpinner } from "react-icons/fa";
 
 import api from "../../services/api";
 
@@ -8,20 +8,36 @@ import { Container, Form, SubmitButton } from "./styles";
 class Main extends Component {
     state = {
         newReppo: "",
+        repositories: [],
+        loading: false,
     };
 
     handleInputChange = e => {
         this.setState({ newReppo: e.target.value });
     };
 
-    handleSubmit = e => {
+    handleSubmit = async e => {
         e.preventDefault();
 
-        console.log(this.state.newReppo);
+        this.setState({ loading: true });
+
+        const { newReppo, repositories } = this.state;
+
+        const response = await api.get(`/repos/${newReppo}`);
+
+        const data = {
+            name: response.data.full_name,
+        };
+
+        this.setState({
+            repositories: [...repositories, data],
+            newReppo: "",
+            loading: false,
+        });
     };
 
     render() {
-        const { newReppo } = this.state;
+        const { newReppo, loading } = this.state;
 
         return (
             <Container>
@@ -38,8 +54,12 @@ class Main extends Component {
                         onChange={this.handleInputChange}
                     />
 
-                    <SubmitButton>
-                        <FaPlus color="#FFF" size={14} />
+                    <SubmitButton loading={loading}>
+                        {loading ? (
+                            <FaSpinner color="#FFF" size={14} />
+                        ) : (
+                            <FaPlus color="#FFF" size={14} />
+                        )}
                     </SubmitButton>
                 </Form>
             </Container>
